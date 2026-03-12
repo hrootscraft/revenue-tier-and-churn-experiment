@@ -1,6 +1,5 @@
 """
 Cannibalization Check
-======================
 In institutional crypto, the market can be zero-sum.
 If treatment clients trade more, are they stealing volume from control clients?
 
