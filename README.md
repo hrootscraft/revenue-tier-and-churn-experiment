@@ -99,7 +99,3 @@ Every pipeline run validates:
 - No treatment leakage into pre-period data
 - Assignment balanced within all strata
 - No duplicate clients (catches JOIN bugs)
-
----
-
-_Built as a portfolio project targeting the Data Scientist II role at Coinbase Institutional._
