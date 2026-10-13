@@ -1,0 +1,10 @@
+|--- distance_pct_filled <= 0.20
+|   |--- maker_ratio <= 0.43
+|   |   |--- class: 1
+|   |--- maker_ratio >  0.43
+|   |   |--- class: 0
+|--- distance_pct_filled >  0.20
+|   |--- log_pre_volume <= 16.36
+|   |   |--- class: 1
+|   |--- log_pre_volume >  16.36
+|   |   |--- class: 0

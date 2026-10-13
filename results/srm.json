@@ -1,0 +1,14 @@
+{
+  "observed": {
+    "holdout": 1503,
+    "nudge": 1498,
+    "incentive": 1999
+  },
+  "expected": {
+    "holdout": 1500.0,
+    "nudge": 1500.0,
+    "incentive": 2000.0
+  },
+  "chi2": 0.009166666666666667,
+  "p_value": 0.9954271541102877
+}

@@ -1,0 +1,10 @@
+name,passed,detail,blocking
+unique clients,True,"5000 rows, 0 duplicates",True
+sample ratio mismatch,True,"chi2 p = 0.995, counts {'holdout': 1503, 'nudge': 1498, 'incentive': 1999}",True
+cell shares within strata,True,worst deviation from plan 0.027,True
+covariate balance,True,max |SMD| = 0.062 across 16 cell x covariate pairs,False
+revenue = volume x rate,True,max abs error $0.00e+00,True
+observed outcome = potential outcome of assigned cell,True,max abs error 0.00e+00,True
+weekly panel sums to quarter volume,True,max relative error 3.40e-15,True
+no post-treatment features,True,"19 features, leaked: []",True
+no treatment leakage into pre-period,True,relative spread of pre-period means 0.008,False

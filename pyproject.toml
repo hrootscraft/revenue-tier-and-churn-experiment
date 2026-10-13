@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tierlift"
+version = "1.0.0"
+description = "Uplift modeling and incrementality analysis of a fee-tier incentive experiment (simulated)."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Rutuja" }]
+license = { text = "MIT" }
+dependencies = [
+    "numpy>=1.24,<2.3",
+    "pandas>=2.0",
+    "scipy>=1.11",
+    "statsmodels>=0.14",
+    "scikit-learn>=1.3",
+    "econml>=0.15",
+    "matplotlib>=3.7",
+    "pyyaml>=6.0",
+    "pyarrow>=14",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4", "ruff>=0.5", "nbformat>=5.9", "nbconvert>=7.0", "ipykernel>=6.0"]
+
+[project.scripts]
+tierlift = "tierlift.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+tierlift = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = ["slow: end-to-end tests that fit the full model zoo"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["notebooks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "NPY"]
+ignore = ["E501"]

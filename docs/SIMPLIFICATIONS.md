@@ -1,18 +1,18 @@
-# Simulation Simplifications vs. Production Coinbase Systems
+# Simplifications relative to a production exchange
 
-This document lists the deliberate simplifications made in the data generator
-relative to how a fee-tier acceleration experiment would run on the actual
-Coinbase institutional platform. Each simplification is noted with its direction
-of bias and its effect on the analysis conclusions.
+The simulator is deliberately simpler than a real institutional exchange. Each row names the
+simplification, what production would look like, and which way it biases the conclusions.
 
-| # | Simplification | Production Reality | Direction of Bias / Analysis Impact |
-|---|---------------|-------------------|--------------------------------------|
-| 1 | **SUTVA assumed — no spillover between clients** | On a shared order book, treatment clients sending additional taker volume interact with control clients' resting limit orders, creating indirect effects | Likely small: institutional flow is a tiny share of Coinbase's total volume; real analysis would run a SUTVA sensitivity check |
-| 2 | **Quarterly fixed window for tier assignment** | Real Coinbase uses a rolling 30-day trailing volume window; tiers can update every day | Understates speed of tier changes; smooths weekly noise — conservative for detecting tier crossings |
-| 3 | **Single treatment arm (progress bar + email only)** | Coinbase may run multiple concurrent institutional product experiments; exclusion lists prevent overlap | Concurrent exposure not modeled; in practice, a holdout/exclusion layer would isolate the experiment |
-| 4 | **Flat pre-period baseline (IID noise around a static mean)** | Real institutional volumes track crypto market trends, quarterly seasonality, and client-level growth trajectories | Understates CUPED variance reduction (less autocorrelation to absorb); power estimates are conservative |
-| 5 | **Segment-to-tier mapping based on stylized priors** | Real mapping would be calibrated from Coinbase's institutional CRM data | Segment response modifiers can dominate tier modifiers in the HTE heatmap — a real dataset would recalibrate these weights |
-| 6 | **Binary churn: zero volume after `churn_week`** | Real churn is gradual (clients reduce activity before going inactive); the standard definition requires 28 consecutive days of zero activity using daily data | Overstates churn precision; follow-up volume trends and the T vs. C churn rate comparison are directionally correct |
-| 7 | **400M+ (top) tier modeled with zero treatment effect** | Top-tier clients might still respond to bundled UX improvements, data features, or relationship manager outreach attached to the same campaign | Conservatively excludes a small population; real effect for this tier could be small but non-zero |
-| 8 | **IID volume noise across clients within the same segment** | Market makers' volumes are correlated — the same market microstructure events (spread widening, volatility regimes) move all MMs simultaneously | Understates true within-segment variance; standard errors may be slightly anti-conservative in segment-level HTE |
-| 9 | **Only 3 coded confounders (volatility spike, competitor promo, seasonal rally)** | Production data has APAC/EMEA regulatory events, scheduled exchange maintenance, token-listing volatility, and macro events (ETF approvals, Fed meetings) | Additional confounders would add noise and widen CIs; the 3 coded ones are chosen to represent the most common categories |
+| # | Simplification | Production reality | Direction / impact |
+|---|---|---|---|
+| 1 | **SUTVA: no interference between clients.** A client's outcome depends only on their own cell. | On a shared order book, treated clients' extra taker flow hits control clients' resting orders. | Institutional flow is a small share of total volume, so spillover is likely small; a real analysis would add a cluster- or market-level sensitivity check. |
+| 2 | **Quarterly tier window.** Tier is set by the previous quarter's volume. | Many venues use a rolling 30-day window and re-tier daily. | Rolling windows make crossings faster and noisier; the quarterly window is conservative for detecting them. |
+| 3 | **Three cells, no concurrent campaigns.** | Several campaigns run at once; exclusion lists keep them from overlapping. | Not modelled; a real holdout would be a global exclusion layer. |
+| 4 | **Engagement lapse is a single telemetry event with a client-constant hazard.** | Engagement is a sequence of interactions; clients can re-engage. | Re-engagement would raise the long-run effect; our decay estimate is conservative. |
+| 5 | **Volume drift is log-normal with one observed driver (AUM flows).** | Drift has many drivers: mandates won/lost, strategy changes, regulation, macro. | The share of drift that CRM covariates explain sets how much AIPW beats CUPED; we assume a strong CRM signal (`drift_flow_coef` vs `drift_log_sd` in the config) and document it in DECISIONS.md. With a weaker signal AIPW's advantage shrinks toward CUPED's. |
+| 6 | **Three planted market confounders** (volatility spike, competitor promo, seasonal rally). | Many more: listings, outages, ETF news, regional regulation. | More confounders widen the week-by-week CIs but cannot bias a treated-vs-holdout contrast. |
+| 7 | **Top-tier clients get zero volume effect.** | They might respond to bundled UX or relationship outreach. | Conservative; excludes ~1% of clients. |
+| 8 | **Client-level noise is independent across clients within a week.** | Market makers' volumes co-move with microstructure regimes. | Understates within-segment variance; segment-level SEs are slightly optimistic. |
+| 9 | **The incentive's rate cut is mechanical** (half-step during the campaign, full next-tier rate if the threshold is reached). | Real incentives carry caps, claw-backs and negotiated terms. | The decomposition identity holds for any rate rule; only the size of the rate effect would change. |
+| 10 | **No churn / lifetime-value channel.** | Clients who cross a tier may churn less ("golden handcuff"). | We dropped it to keep one outcome (revenue) and one durability mechanism (engagement decay). It is the natural next extension. |
+| 11 | **Simulated data with planted effects.** | Real data: the truth is unknown. | This is the point of the project: every method is graded against a known answer. The README says so up front. |
