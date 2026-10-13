@@ -58,12 +58,17 @@ for a run that looked good, would have been the dishonest version. Different but
 plausible primitives would give different headline numbers, which is why they are in one
 config file rather than in the code.
 
-**A3. A showcase seed chosen by a median rule, not by eye.**
-*Why:* any single run of a 5,000-client experiment is one draw. `tierlift montecarlo` runs 40
-seeds and writes bias, SD, reported SE and coverage for the headline estimators; the showcase
-seed in the config is the one whose targeted-band estimate is closest to the Monte Carlo
-*median* (`pick_showcase_seed`). That picks a representative run, not a lucky or an unlucky
-one, and the rule is in the code so a reviewer can rerun it. The current showcase seed is 13.
+**A3. Headline numbers are averages over 40 runs; the figures use one representative run
+picked by a target-blind rule.**
+*Why:* any single run of a 5,000-client experiment is one draw, and a method can land near the
+truth on one draw by luck. `tierlift montecarlo` re-simulates and re-analyses the experiment
+for seeds 0–39 and writes bias, SD, reported SE and coverage for the headline estimators; the
+README's headline table reports those averages first. The figures and per-method tables still
+need one concrete run. That run is the seed whose targeted-band AIPW estimate is closest to the
+*median* of the 40 estimates (`pick_showcase_seed`). The rule uses only the estimates, never the
+planted truth, so it cannot select a run for agreeing with the truth; it selects the middle
+run, not the best or the worst. It is in the code so anyone can rerun it. The current run is
+seed 13.
 
 **A4. Both scripts and notebooks, with no logic in the notebooks.**
 *Why:* scripts are what gets tested, reviewed and run in CI; notebooks are how an analyst

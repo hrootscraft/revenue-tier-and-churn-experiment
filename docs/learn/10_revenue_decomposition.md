@@ -108,9 +108,9 @@ averages +11.0% and the AIPW estimate +13.0% (SD 5.5%, mean reported SE 4.7%, 95
 95%); blanket −2.9% true, −2.7% estimated (coverage 95%). The band's point estimate runs
 about two points high on average because the relative effect is a ratio (effect / holdout
 mean of a small, heavy-tailed group), a known small-sample bias of ratio estimators; the CI
-coverage is right. The showcase seed in the README (seed 13) is the replication whose band
-estimate is closest to the Monte Carlo median, so the figures show a typical run rather than
-a lucky one.
+coverage is right. The run behind the README's figures (seed 13) is the replication whose band
+estimate is closest to the median of the 40 estimates (a rule that never looks at the truth),
+so the figures show a typical run rather than a lucky one.
 
 ## 10.7 Pitfalls
 
