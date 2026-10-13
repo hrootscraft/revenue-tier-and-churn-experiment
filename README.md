@@ -13,11 +13,13 @@ for effect decay. Every method is graded against the simulator's planted truth, 
 
 > **The data is simulated.** There is no real client data here. A simulator
 > (`src/tierlift/simulate/`) generates clients, fee tiers, a stratified three-cell experiment
-> and every client's *potential outcomes* under every cell, with effects planted to be realistic
-> and, deliberately, to land near the numbers on my resume. The estimators never see the truth;
-> the tables below show the estimate next to the planted truth so you can judge each method.
-> `docs/SIMPLIFICATIONS.md` lists what a real exchange would add. `docs/DECISIONS.md` (A1–A3)
-> explains how the numbers were calibrated without tuning the estimators.
+> and every client's *potential outcomes* under every cell. Its primitive parameters (fee
+> schedule, incentive size, how volume responds to it, the weekly lapse rate, noise) are set to
+> plausible values from stated assumptions, and the headline effects follow from them. The
+> estimators never see the truth; the tables below show the estimate next to the planted truth
+> so you can judge each method. `docs/SIMPLIFICATIONS.md` lists what a real exchange would add.
+> `docs/DECISIONS.md` (A1–A3) lists every assumption with its rationale and explains why the
+> estimators were never tuned to the truth.
 
 ## Headline results (showcase run, seed 13; `results/headline.json`)
 
