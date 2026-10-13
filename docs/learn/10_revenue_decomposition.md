@@ -98,8 +98,8 @@ agree:
 
 `results/targeting_band_grid.csv` sweeps the band: 0–10% (−6.5%), 10–20% (+12.5%), 20–30%
 (+1.8%), 30–50% (−5.7%), 50%+ (−4.9%, CI excludes zero). Only 10–20% is positive with a CI
-that excludes zero. The sweet spot is a *band*, not a point, and it is where the resume
-number comes from.
+that excludes zero. The sweet spot is a *band*, not a point, and it is where the headline
+targeted-rollout number comes from.
 
 ## 10.6 Monte Carlo check
 

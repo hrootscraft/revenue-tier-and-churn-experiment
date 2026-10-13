@@ -11,22 +11,59 @@ business story.
 *Why:* the point of the project is to grade estimators against a known answer; no public dataset has
 fee tiers, a holdout kept for 26 weeks, and per-client potential outcomes. The README's first
 section says the data is simulated, every "truth" column in the results is labelled, and
-`docs/SIMPLIFICATIONS.md` lists what a real exchange would add. A hiring manager should never
+`docs/SIMPLIFICATIONS.md` lists what a real exchange would add. A reader should never have to
 discover this on their own.
 
-**A2. Numbers calibrated to the resume bullet, by the planted truth and not by the estimator.**
-*Why:* the resume says ~50% variance reduction, ~+11% targeted net revenue, ~2%/week decay, ~40%
-ROI overstatement, forest best on Qini/AUUC. The *simulator's* parameters were set so the *true*
-effects land there (`configs/default.yaml`, `truth:` block); the estimators are then free to be
-right or wrong. The Monte Carlo (A3) is what shows they are right on average. Tuning the
-estimators or the seed until the estimate matched would have been the dishonest version.
+**A2. The simulator's primitives were set from stated domain assumptions; the headline effects
+follow from them.**
+*Why:* a simulation needs numbers, and there is no dataset to estimate them from. So the
+*primitive* parameters (the fee schedule, the incentive's size, how volume responds to it, how
+many clients sit near a boundary, how fast the behaviour change wears off, how noisy volume is)
+were set to plausible values, each from a one-line argument about how fee tiers and incentives
+work. They are the author's assumptions, not measurements; they all live in
+`configs/default.yaml` so anyone can change them and rerun.
+
+| Parameter (`configs/default.yaml`) | Value | Rationale |
+|---|---|---|
+| Fee schedule (`fees.tiers`) | 4 tiers, thresholds $25M / $100M / $500M a quarter; each step cuts the blended rate by ~13–15% | Volume tiers reward scale with modest rate steps: big enough that a client notices, small enough that the venue does not give away its margin on every promotion. The schedule is illustrative, not any venue's. |
+| Volume distribution (`population`) | log-normal, median $45M, log-sd 0.7, six segments | Trading volume is heavy-tailed (a few large clients dominate dollars). With this spread about 15% of clients sit within 20% of the next threshold, which is the minority an incentive can act on. |
+| Incentive size (`incentive_half_step`) | rate halfway to the next tier during the campaign; full next-tier rate if the threshold is reached | Large enough to change behaviour, smaller than the full step so that actually crossing still pays. |
+| Planted lift by distance to the next tier (`incentive_lift_by_distance`) | 8% within 10%, 30% at 10–20%, 6% at 20–40%, 3% beyond, 0 at the top tier | Only a client close to a boundary can be pushed over it, and effort rises as the goal comes within reach (goal gradient). Clients within 10% mostly cross anyway, so their *incremental* lift is small; clients far away cannot reach the threshold in one quarter. |
+| Nudge alone (`nudge_scale`) | 25% of the incentive's lift | Information ("you are 15% from the next tier") moves some clients; money moves more. |
+| Who responds (`lift_log_sd`, `engagement_lift_coef`, `api_lift_coef`, segment `responsiveness`) | client noise σ 0.25; +30% per sd of engagement; −50% scaled by API share | Algorithmic flow is routed by code, not by an email or a dashboard, so it responds less; engaged clients read the campaign. These give the CATE models structure to find beyond the band. |
+| Quarter-to-quarter drift (`drift_flow_coef`, `drift_log_sd`) | 0.57 on AUM flows, residual sd 0.12 | Volume is persistent quarter to quarter but moves with the client's assets. This puts the pre/post revenue correlation near 0.7. |
+| Weekly noise (segment `weekly_cv`) | 15–35% | Market makers trade steadily; hedge and quant funds are bursty. |
+| Lapse hazard of the behaviour change (`base_weekly_hazard`, `hazard_coefs`) | 2% a week; account manager slows it, API share speeds it | Promotions wear off over months, not days: 2% a week is a median engaged life of about 35 weeks (ln 2 / 0.02). A relationship manager keeps a client engaged; an algorithm forgets the campaign. |
+| Maker/taker shift (`treated_maker_ratio_shift`) | −3 points | Clients chasing a volume target trade more aggressively, so part of their extra volume pays the taker fee. |
+
+The headline effects are *consequences* of these primitives, not separate settings:
+
+* **CUPED variance cut ≈ 50%.** CUPED removes a share ρ² of the variance, where ρ is the
+  pre/post correlation; ρ ≈ 0.71 gives ρ² ≈ 0.5.
+* **Blanket rollout loses money.** A blanket discount lowers the rate on all the volume in the
+  book, most of which would have traded anyway, while the volume response is concentrated in the
+  ~8% of clients who are 10–20% from a boundary. The rate cost is paid on 100% of the volume; the
+  gain arrives on a small slice of it.
+* **Targeted rollout makes money.** In the 10–20% band the volume lift (~30%) is several times
+  the rate cut, so revenue rises; outside it the lift is smaller than the discount.
+* **ROI overstatement ≈ 40%.** Annualising the first quarter's effect assumes it lasts all year.
+  With a 2% weekly lapse hazard the share still engaged falls over the year, and the naive /
+  true ratio over 52 weeks is about 1.42 (derived in write-up 11).
+* **Which uplift model wins** is not planted at all; it is whatever the benchmark finds.
+
+The estimators never see any of this. They are given the observed data only, and every results
+table shows the estimate next to the planted truth so each method can be judged. The Monte Carlo
+(A3) shows the estimators recover the truth on average; tuning the estimators, or searching seeds
+for a run that looked good, would have been the dishonest version. Different but equally
+plausible primitives would give different headline numbers, which is why they are in one
+config file rather than in the code.
 
 **A3. A showcase seed chosen by a median rule, not by eye.**
 *Why:* any single run of a 5,000-client experiment is one draw. `tierlift montecarlo` runs 40
 seeds and writes bias, SD, reported SE and coverage for the headline estimators; the showcase
 seed in the config is the one whose targeted-band estimate is closest to the Monte Carlo
-*median* (`pick_showcase_seed`). That gives a typical run, not a lucky one, and the rule is
-in the code so a reviewer can rerun it. The current showcase seed is 13.
+*median* (`pick_showcase_seed`). That picks a representative run, not a lucky or an unlucky
+one, and the rule is in the code so a reviewer can rerun it. The current showcase seed is 13.
 
 **A4. Both scripts and notebooks, with no logic in the notebooks.**
 *Why:* scripts are what gets tested, reviewed and run in CI; notebooks are how an analyst
@@ -83,7 +120,7 @@ and the permutation test needs the strata anyway.
 ## C. Experiment analysis
 
 **C1. CUPED with the pre-period revenue as the single covariate; Lin regression and AIPW as
-the multi-covariate versions.** *Why:* CUPED is the industry standard and the resume number;
+the multi-covariate versions.** *Why:* CUPED is the industry standard and the number most experimentation platforms report;
 Lin (2013) is the textbook-correct regression with interactions and HC2; AIPW is the course's
 double-robust estimator. Reporting all four on one axis (`01_ate_estimators.png`) shows that
 the point estimates agree and the standard errors shrink as more pre-treatment information is
