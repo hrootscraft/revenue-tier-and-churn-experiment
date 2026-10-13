@@ -1,0 +1,99 @@
+# ---------------------------------------------------------------------------
+# tierlift default configuration
+#
+# Every number that shapes the simulation or the analysis lives here, so that
+# a reviewer can see exactly what "truth" was planted and a contributor can
+# run sensitivity analyses without touching code (see docs/DECISIONS.md).
+# ---------------------------------------------------------------------------
+
+seed: 13  # chosen by the Monte Carlo median rule, see docs/DECISIONS.md and `tierlift montecarlo`
+
+population:
+  n_clients: 5000
+  # Quarterly trading volume is log-normal. The median and log-sd set how many
+  # clients sit near each tier boundary (about 15% are within 20% of the next tier).
+  median_quarterly_volume: 45_000_000
+  log_sd_quarterly_volume: 0.7
+  segments:
+    # share: fraction of clients; volume_mult: multiplies the median volume
+    # maker_ratio: share of volume posted as maker (limit) orders
+    # api_share: share of volume sent by algorithms (less influenced by a UI nudge)
+    # responsiveness: multiplies the treatment effect (behavioural prior)
+    # weekly_cv: week-to-week volatility of volume
+    Hedge Fund:         {share: 0.25, volume_mult: 1.3, maker_ratio: 0.45, api_share: 0.55, responsiveness: 1.00, weekly_cv: 0.35}
+    Market Maker:       {share: 0.10, volume_mult: 2.5, maker_ratio: 0.80, api_share: 0.95, responsiveness: 0.35, weekly_cv: 0.15}
+    Corporate Treasury: {share: 0.20, volume_mult: 0.5, maker_ratio: 0.25, api_share: 0.10, responsiveness: 1.25, weekly_cv: 0.20}
+    Family Office:      {share: 0.15, volume_mult: 0.7, maker_ratio: 0.30, api_share: 0.15, responsiveness: 1.15, weekly_cv: 0.25}
+    Asset Manager:      {share: 0.20, volume_mult: 1.0, maker_ratio: 0.35, api_share: 0.30, responsiveness: 0.95, weekly_cv: 0.20}
+    Quant Fund:         {share: 0.10, volume_mult: 1.6, maker_ratio: 0.65, api_share: 0.90, responsiveness: 0.50, weekly_cv: 0.30}
+  regions: {Americas: 0.50, EMEA: 0.30, APAC: 0.20}
+
+fees:
+  # Quarterly volume thresholds and maker/taker fees in basis points.
+  # Each step up cuts the blended rate by about 13-15%.
+  tiers:
+    - {name: Starter,      min_volume: 0,           maker_bps: 8.0, taker_bps: 14.0}
+    - {name: Standard,     min_volume: 25_000_000,  maker_bps: 7.0, taker_bps: 12.0}
+    - {name: Professional, min_volume: 100_000_000, maker_bps: 6.0, taker_bps: 10.5}
+    - {name: Enterprise,   min_volume: 500_000_000, maker_bps: 5.0, taker_bps: 9.0}
+  # Status quo: a tier earned in quarter q applies from quarter q+1.
+
+experiment:
+  pre_weeks: 13
+  experiment_weeks: 13
+  followup_weeks: 26          # the holdout is kept for 26 more weeks to measure decay
+  cells:                      # multi-cell design with a global holdout
+    holdout: 0.30             # large enough to read subgroup effects (see DECISIONS.md)
+    nudge: 0.30               # progress-to-next-tier bar + email (information only)
+    incentive: 0.40           # nudge + Tier Accelerator fee incentive
+  stratify_on: [tier, distance_bucket, segment]
+  # Tier Accelerator: during the campaign the client pays a rate `half_step`
+  # of the way between the current and the next tier's rate. If campaign-quarter
+  # volume reaches the next threshold, the full next-tier rate applies
+  # retroactively to the whole quarter.
+  incentive_half_step: 0.5
+  # Treated clients shift slightly toward taker (market) orders to chase the tier.
+  treated_maker_ratio_shift: -0.03
+
+truth:
+  # Quarter-over-quarter client-level drift in log volume:
+  #   log drift = drift_flow_coef * aum_flow_z + drift_log_sd * noise
+  # Pre-period revenue cannot see the drift, so CUPED cuts variance by about 50%,
+  # not 99%. Covariate-rich adjustment (AIPW) also sees aum_flow_z and does better.
+  drift_flow_coef: 0.57
+  drift_log_sd: 0.12
+  # Planted volume lift for the incentive cell as a function of distance to the
+  # next tier (goal-gradient shaped, peaking 10-20% from the boundary).
+  # Clients within 10% mostly cross anyway, so their *incremental* lift is small.
+  incentive_lift_by_distance:
+    within_10: 0.08
+    10_to_20: 0.30
+    20_plus_near: 0.06        # 20-40% away
+    20_plus_far: 0.03         # >40% away
+    top_tier: 0.00
+  nudge_scale: 0.25           # the nudge alone gets 25% of the incentive's lift
+  lift_log_sd: 0.25           # client-level heterogeneity around the mean lift
+  engagement_lift_coef: 0.30  # +30% lift per 1-sd of pre-period dashboard engagement
+  api_lift_coef: -0.50        # algorithmic flow is less influenced by UI nudges
+  # Effect decay: each treated client stays "engaged" with the campaign until a
+  # lapse event. The weekly lapse hazard is about 2%, and the lift only exists while engaged.
+  base_weekly_hazard: 0.02
+  hazard_coefs:               # log-hazard ratios (proportional hazards)
+    has_account_manager: -0.35
+    api_share: 0.40
+    engagement_z: -0.15
+  confounders:
+    volatility_spike: {weeks: [6, 8], segment_mult: {Market Maker: 1.30, Hedge Fund: 1.15, Quant Fund: 1.20, Corporate Treasury: 0.85, Family Office: 0.90, Asset Manager: 0.95}}
+    competitor_promo: {start_week: 4, tier: Starter, mult: 0.95}
+    seasonal_rally: {weeks: [10, 13], mult: 1.10}
+
+analysis:
+  alpha: 0.05
+  n_permutations: 5000
+  n_bootstrap: 500
+  winsor_quantile: 0.995      # robustness only; the primary analysis is unwinsorised
+  test_size: 0.5              # uplift models: train / evaluation split
+  n_folds: 5                  # cross-fitting folds for nuisance models
+  primary_contrast: [incentive, holdout]
+  targeting_band: [0.10, 0.20]
+  horizon_weeks: 52           # ROI projection horizon

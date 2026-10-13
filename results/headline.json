@@ -1,0 +1,69 @@
+{
+  "seed": 13,
+  "n_clients": 5000,
+  "cells": {
+    "holdout": 0.3,
+    "nudge": 0.3,
+    "incentive": 0.4
+  },
+  "cuped_variance_reduction": 0.5152003871593726,
+  "cuped_rho": 0.7121001992955643,
+  "ate": {
+    "nudge": {
+      "cuped_rel": -0.016851407838047495,
+      "truth_rel": 0.027927917766167765
+    },
+    "incentive": {
+      "cuped_rel": -0.04661767837696629,
+      "truth_rel": -0.030394189578236808
+    }
+  },
+  "uplift": {
+    "best_by_auuc": "CausalForestDML",
+    "auuc": {
+      "CausalForestDML": 0.023396820431025016,
+      "X-learner": 0.01884070778629417,
+      "S-learner": 0.01848354250262084,
+      "T-learner": 0.011664833313976547,
+      "R-learner": 0.011170283465933772,
+      "DR-learner": 0.010426249060816154
+    },
+    "spearman_vs_truth": {
+      "CausalForestDML": 0.7039399946467646,
+      "X-learner": 0.45438741342208133,
+      "S-learner": 0.658720363469549,
+      "T-learner": 0.3867997498373362,
+      "R-learner": 0.3582727510006042,
+      "DR-learner": 0.34625857389588355
+    },
+    "perfect_auuc": 0.035688934312428776
+  },
+  "rollout": {
+    "Blanket rollout": {
+      "est_net_revenue_pct": -0.03427872856962322,
+      "ci": [
+        -0.060133978307627414,
+        -0.008423478831619025
+      ],
+      "true_net_revenue_pct": -0.029662398681286433
+    },
+    "Targeted: 10%-20% from tier": {
+      "est_net_revenue_pct": 0.12451990706797744,
+      "ci": [
+        0.04339002384866478,
+        0.2056497902872901
+      ],
+      "true_net_revenue_pct": 0.11828175082498295
+    }
+  },
+  "durability": {
+    "weekly_hazard": 0.019346848722004827,
+    "weekly_hazard_se": 0.0004443531416524779,
+    "curve_decay_per_week": 0.02363998882112306,
+    "curve_decay_se": 0.004511074203824744,
+    "benefit_overstatement_pct": 0.4063658941452335,
+    "net_overstatement_pct": 0.8958443628058017
+  },
+  "share_treated_in_band": 0.40441176470588236,
+  "runtime_seconds": 212.02526468699944
+}

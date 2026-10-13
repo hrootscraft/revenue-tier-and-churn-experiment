@@ -1,12 +1,14 @@
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
-data/raw/
-data/processed/
-data/live/
-.env
+.pytest_cache/
+.ruff_cache/
 *.egg-info/
 dist/
 build/
-.pytest_cache/
-NOTES.md
+.venv/
+.env
+
+# Generated data (reproduce with `make data` / `make all`)
+data/
+results/montecarlo/
