@@ -21,16 +21,24 @@ for effect decay. Every method is graded against the simulator's planted truth, 
 > `docs/DECISIONS.md` (A1–A3) lists every assumption with its rationale and explains why the
 > estimators were never tuned to the truth.
 
-## Headline results (showcase run, seed 13; `results/headline.json`)
+## Headline results
 
-| Question | Method | Result | Planted truth |
-|---|---|---|---|
-| How much tighter does CUPED make the ATE? | CUPED with pre-period revenue | **52% variance reduction** (ρ = 0.71); equivalent to 2.2× the sample | 51% ± 3% over 40 seeds |
-| Which uplift model ranks clients best? | 6 learners, 4-fold × 2-repeat cross-fitting; Qini, AUUC, RATE | **CausalForestDML first on every metric**: AUUC 0.023 (ceiling 0.036), Qini 0.013, rank correlation with true effects 0.70 | Forest first by rank correlation in 5 of 5 replications |
-| What happens if everyone gets the incentive? | AIPW (doubly robust), incentive vs holdout | **−3.4% net revenue** [−6.0, −0.8] | −3.0% |
-| What if only clients 10–20% below the next tier get it? | AIPW scores averaged over the band (8% of clients) | **+12.5% net revenue** [+4.3, +20.6] on the targeted clients; +$3.1M per quarter | +11.8%; +$2.9M |
-| Does the effect last? | Kaplan–Meier, weekly hazard, Cox PH on engagement lapse | **1.93% ± 0.04% per week** lapse hazard (half-life ≈ 36 weeks); account managers slow it, API-heavy flow speeds it | 2.0% |
-| What does naive annualisation get wrong? | Decay-adjusted ROI projection | **Benefit overstated by 41%** (net by 90%, because the rate cost does not decay) | 42% at h = 2% |
+The headline numbers are averages over **40 independent simulated experiments** (seeds 0–39,
+`tierlift montecarlo`; `results/montecarlo_summary.csv`), each re-simulated and re-analysed from
+scratch. One simulated experiment is one draw, so a single run cannot show that a method works;
+the spread across 40 can. The figures and per-method tables further down come from one of those
+40 runs, seed 13. It was picked by a fixed rule that never looks at the planted truth: the run
+whose targeted-band estimate is the median of the 40 (`pick_showcase_seed`, decision A3), so
+it is a typical run rather than the best one.
+
+| Question | Method | Over 40 runs: estimate (mean ± SD) | Planted truth (mean over runs) | Seed 13: estimate vs truth |
+|---|---|---|---|---|
+| How much tighter does CUPED make the ATE? | CUPED with pre-period revenue | **51% ± 3% variance reduction** | not planted: follows from ρ ≈ 0.71 (A2) | 52% (ρ = 0.71); equivalent to 2.2× the sample |
+| What happens if everyone gets the incentive? | AIPW (doubly robust), incentive vs holdout | **−2.7% ± 1.3% net revenue**; 95% CIs cover the truth in 95% of runs | −2.9% | −3.4% [−6.0, −0.8] vs −3.0% |
+| What if only clients 10–20% below the next tier get it? | AIPW scores averaged over the band (8% of clients) | **+13.0% ± 5.5% net revenue** on the targeted clients; coverage 95% | +11.0% | +12.5% [+4.3, +20.6] vs +11.8%; +$3.1M per quarter vs +$2.9M |
+| Does the effect last? | Kaplan–Meier, weekly hazard, Cox PH on engagement lapse | **1.95% ± 0.04% per week** lapse hazard (half-life ≈ 36 weeks); account managers slow it, API-heavy flow speeds it | 2.0% | 1.93% vs 2.0% |
+| What does naive annualisation get wrong? | Decay-adjusted ROI projection | **Benefit overstated by ~41%** at the mean hazard (net by much more, because the rate cost does not decay) | 42% at h = 2% | 41% (net 90%) |
+| Which uplift model ranks clients best? | 6 learners, 4-fold × 2-repeat cross-fitting; Qini, AUUC, RATE | Over 5 replications: **CausalForestDML first by rank correlation with the true effects in 5 of 5**; S-learner first by AUUC in 3 of 5 (`results/benchmark_montecarlo_summary.csv`) | not planted | Forest first on every metric: AUUC 0.023 (ceiling 0.036), Qini 0.013, rank correlation 0.70 |
 
 <p align="center"><img src="reports/figures/10_rollout_comparison.png" width="900"></p>
 
@@ -348,9 +356,10 @@ whole experiment is re-simulated and re-analysed 40 times with different seeds.
 The reported standard errors match the spread of the estimates and the intervals cover the
 truth at the nominal rate; the band's ratio estimate runs about two points high on average (a
 small-sample property of ratio estimators, documented rather than hidden). CUPED's variance
-reduction is 51% ± 3% and the lapse hazard 1.95% ± 0.04% across seeds. The showcase seed is
-the one whose band estimate is closest to the Monte Carlo median, chosen by a rule in the code
-(`pick_showcase_seed`), so the figures show a typical run rather than a lucky one.
+reduction is 51% ± 3% and the lapse hazard 1.95% ± 0.04% across seeds. The run used for
+the figures (seed 13) is the one whose band estimate is closest to the median of the 40, a
+rule in the code (`pick_showcase_seed`) that never looks at the planted truth, so the figures
+show a typical run rather than a lucky one.
 
 **What the single run does not show, said plainly.** The population-level effect is not
 significant at this sample size (section 3.2); the band's interval is wide (+4% to +21%);

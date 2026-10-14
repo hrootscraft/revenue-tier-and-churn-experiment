@@ -9,9 +9,9 @@ honest check is to repeat the whole thing N times and ask
   estimates across seeds, and does the 95% CI cover the truth ~95% of the time?
 
 This is also how the showcase seed in ``configs/default.yaml`` is chosen (see
-docs/DECISIONS.md): not the draw with the prettiest number, but the draw whose
-targeted-rollout estimate is closest to the Monte Carlo median, so the figures
-in the README show a *typical* experiment.
+docs/DECISIONS.md A3): the draw whose targeted-rollout estimate is closest to the
+median of the estimates. The rule never looks at the planted truth, so it picks
+the middle run, and the figures in the README show a *typical* experiment.
 
 Runtime: ~5 s per seed single-threaded; 40 seeds on 4 workers ≈ 1 minute.
 """
@@ -104,7 +104,7 @@ def summarise(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def pick_showcase_seed(df: pd.DataFrame, column: str = "band_aipw") -> int:
-    """The seed whose targeted-rollout estimate is closest to the Monte Carlo median."""
+    """The seed whose band estimate is closest to the median estimate; never uses the truth."""
     med = df[column].median()
     return int(df.loc[(df[column] - med).abs().idxmin(), "seed"])
 
