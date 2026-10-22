@@ -125,7 +125,7 @@ effect on the incentive-vs-holdout contrast is **11.6%** of revenue at 80% power
 revenue predicts the experiment-period revenue with ρ = 0.71, so CUPED (subtracting θ × the
 pre-period deviation) cuts the variance by ρ² ≈ **52%** and the MDE to **7.9%**: the same
 precision as an experiment 2.2× the size. `results/power.csv`,
-[`02_randomisation_and_design.md`](docs/learn/02_randomisation_and_design.md).
+[`notebooks/01_power_and_design.ipynb`](notebooks/01_power_and_design.ipynb).
 
 ### 3.2 The average effect: four estimators, one answer
 
@@ -152,7 +152,8 @@ from zero by any estimator.
 effect of a blanket rollout is not detectable at this sample size, as the power analysis
 predicted; Holm-corrected p-values across the two cells are in `results/multiple_testing.json`.
 The project does not pretend otherwise: the decision-relevant estimates are the targeted ones
-below. [`03_ate_cuped_regression.md`](docs/learn/03_ate_cuped_regression.md).
+below. [`02_cuped_and_regression_adjustment.md`](docs/learn/02_cuped_and_regression_adjustment.md),
+[`03_robustness_tests.md`](docs/learn/03_robustness_tests.md).
 
 ### 3.3 What if we had not randomised?
 
@@ -218,8 +219,8 @@ reorders between seeds (the S-learner is first by AUUC in three of five, with an
 SD as large as the mean). The honest summary is that the forest is the most reliable at
 recovering the true ranking, the S-learner is the strongest meta-learner on this data, and a
 single-run leaderboard should be read with its RATE standard errors.
-[`06_r_learner_dr_learner.md`](docs/learn/06_r_learner_dr_learner.md),
-[`07_causal_forests.md`](docs/learn/07_causal_forests.md),
+[`06_orthogonal_learners_r_dr.md`](docs/learn/06_orthogonal_learners_r_dr.md),
+[`07_causal_trees_and_forests.md`](docs/learn/07_causal_trees_and_forests.md),
 [`08_evaluating_uplift_qini_auuc_rate.md`](docs/learn/08_evaluating_uplift_qini_auuc_rate.md).
 
 <p align="center"><img src="reports/figures/07_cate_vs_distance.png" width="820"></p>
@@ -376,8 +377,8 @@ Wager et al.; [YouTube playlist](https://youtube.com/playlist?list=PLxq_lXOUlvQA
 | Course section | Concept | Where it is used |
 |---|---|---|
 | 1–2. ML for prediction vs estimation; sample splitting | Cross-fitting; prediction ≠ causal estimation | Every nuisance model is cross-fitted (`aipw_scores`, `fit_crossfit`, `dr_scores`); write-up 4 §4.5 |
-| 3. Potential outcomes, ATE, propensity scores, double robustness | ATE, CUPED/regression adjustment, IPW, AIPW, overlap | `experiment/ate.py`, `experiment/observational.py`; write-ups 1, 3, 4 |
-| 3. Randomisation | Stratified assignment, SRM, balance, power, MDE | `simulate/assignment.py`, `experiment/design.py`; write-up 2 |
+| 3. Potential outcomes, ATE, propensity scores, double robustness | ATE, CUPED/regression adjustment, IPW, AIPW, overlap | `experiment/ate.py`, `experiment/robustness.py`, `experiment/observational.py`; write-ups 1–4 |
+| 3. Randomisation | Stratified assignment, SRM, balance, power, MDE | `simulate/assignment.py`, `experiment/design.py`; write-up 1 §1.5, notebook 01 |
 | 4. Heterogeneous effects, trees and forests | CATE, causal forest, honest estimation | `CausalForestDML` in `uplift/learners.py`; write-up 7 |
 | 5. Meta-learners, R-learner, orthogonalisation | S/T/X, R-learner (NonParamDML), DR-learner | `uplift/learners.py`; write-ups 5, 6 |
 | 6. Validating HTE models | Qini/AUUC, RATE/TOC, BLP calibration, oracle checks | `uplift/evaluate.py`; write-up 8 |
@@ -393,12 +394,12 @@ hand, the math, where it shows up in the results, the pitfalls, and exercises wi
 | # | Write-up | What you will be able to do afterwards |
 |---|---|---|
 | 1 | [Potential outcomes, ATE, CATE](docs/learn/01_potential_outcomes.md) | Say precisely what "the effect of the incentive" means and why one client's effect is unobservable |
-| 2 | [Randomisation, stratification, SRM, power, MDE](docs/learn/02_randomisation_and_design.md) | Design a multi-cell test and know before running it what it can detect |
-| 3 | [Difference in means, CUPED, Lin regression](docs/learn/03_ate_cuped_regression.md) | Explain where CUPED's variance reduction comes from and derive θ |
+| 2 | [CUPED and regression adjustment](docs/learn/02_cuped_and_regression_adjustment.md) | Explain where CUPED's variance reduction comes from and derive θ |
+| 3 | [Welch's t, Mann–Whitney, permutation, Holm](docs/learn/03_robustness_tests.md) | Say what question each test answers and why they can disagree |
 | 4 | [Propensity scores, IPW, AIPW, double robustness](docs/learn/04_propensity_ipw_aipw.md) | Read an AIPW formula and know which model's failure it survives |
 | 5 | [S-, T-, X-learners](docs/learn/05_meta_learners_s_t_x.md) | Predict which meta-learner wins from the shape of the problem |
-| 6 | [R-learner and DR-learner](docs/learn/06_r_learner_dr_learner.md) | Explain orthogonalisation and why residual-on-residual works |
-| 7 | [Causal forests](docs/learn/07_causal_forests.md) | Explain honest splitting and what a forest's leaf estimates |
+| 6 | [R-learner and DR-learner](docs/learn/06_orthogonal_learners_r_dr.md) | Explain orthogonalisation and why residual-on-residual works |
+| 7 | [Causal forests](docs/learn/07_causal_trees_and_forests.md) | Explain honest splitting and what a forest's leaf estimates |
 | 8 | [Qini, AUUC, RATE, BLP calibration](docs/learn/08_evaluating_uplift_qini_auuc_rate.md) | Score an uplift model without knowing anyone's true effect |
 | 9 | [Policy learning](docs/learn/09_policy_learning.md) | Turn CATEs into a targeting rule and value it honestly |
 | 10 | [Revenue decomposition](docs/learn/10_revenue_decomposition.md) | Split a revenue change into volume and price effects, exactly |
